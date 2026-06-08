@@ -1,5 +1,7 @@
 package com.gab.nutri_api.model;
 
+import java.util.List;
+
 import com.gab.nutri_api.model.enums.ScopePlan;
 import com.gab.nutri_api.model.enums.TypePlan;
 
@@ -49,7 +51,7 @@ public class PlanAlimentaire {
 	private String notes;
 	
 	@OneToMany(mappedBy = "planAlim")
-	private Repas repas;
+	private List<Repas> listeRepas;
 
 	public Integer getId() {
 		return id;
@@ -107,13 +109,13 @@ public class PlanAlimentaire {
 		this.notes = notes;
 	}
 
-	public Repas getRepas() {
-		return repas;
+	public List<Repas> getListeRepas() {
+		return listeRepas;
 	}
 
-	public void setRepas(Repas repas) {
-		this.repas = repas;
+	public void setListeRepas(List<Repas> listeRepas) {
+		this.listeRepas = listeRepas;
 	}
+
 	
-
 }
