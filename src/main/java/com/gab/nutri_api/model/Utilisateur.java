@@ -9,7 +9,6 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 
 @Entity
@@ -35,11 +34,7 @@ public class Utilisateur {
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false)
 	private RoleUtilisateur role;
-	
-	@OneToOne(mappedBy = "utilisateur")
-    private Dieteticien dieteticien;
-
-	
+		
 	public Integer getId() {
 		return id;
 	}
@@ -86,16 +81,7 @@ public class Utilisateur {
 
 	public void setRole(RoleUtilisateur role) {
 		this.role = role;
-	}
-	
-	public Dieteticien getDieteticien() {
-		return dieteticien;
-	}
-
-	public void setDieteticien(Dieteticien dieteticien) {
-		this.dieteticien = dieteticien;
-	}
-	
+	}	
 		
 
 }

@@ -1,7 +1,8 @@
 package com.gab.nutri_api.model.enums;
 
 public enum RoleUtilisateur {
-	USER,
+	PATIENT,
+	DIETETICIEN,
 	ADMIN
 
 }

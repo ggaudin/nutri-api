@@ -1,11 +1,12 @@
 package com.gab.nutri_api.model;
 
 import java.math.BigDecimal;
-import java.sql.Date;
+import java.time.LocalDate;
 import java.util.List;
 
 import com.gab.nutri_api.model.enums.GenrePatient;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -41,7 +42,8 @@ public class Patient {
 	
 	private BigDecimal nap;
 	
-	private Date date;
+	@Column(name = "datedenaissance")
+	private LocalDate date;
 	
 	@Enumerated(EnumType.STRING)
 	private GenrePatient genre;
@@ -97,12 +99,12 @@ public class Patient {
 		this.nap = nap;
 	}
 
-	public Date getDate() {
+	public LocalDate getDate() {
 		return date;
 	}
 
-	public void setDate(Date date) {
-		this.date = date;
+	public void setDate(LocalDate localDate) {
+		this.date = localDate;
 	}
 
 	public GenrePatient getGenre() {
