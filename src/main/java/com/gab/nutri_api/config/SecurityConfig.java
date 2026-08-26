@@ -59,9 +59,15 @@ public class SecurityConfig {
 
                 //url accessibles à tous
                 .requestMatchers("/auth/inscription", "/auth/connexion").permitAll()
+                
+              //url accessibles seulements en fonction du rôle
+                .requestMatchers("/diet/**").hasRole("DIETETICIEN")
+                .requestMatchers("/patient/**").hasRole("PATIENT")
+                .requestMatchers("/admin/**").hasRole("ADMIN")
 
                 //toutes les autres sont accessibles via authentification
                 .anyRequest().authenticated()
+                
             )
             
             .authenticationProvider(authenticationProvider())

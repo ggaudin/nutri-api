@@ -59,17 +59,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter{
 		} catch (Exception e) {
 			
 			SecurityContextHolder.clearContext();
-
-	        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-	        response.setContentType("application/json");
-
-	        response.getWriter().write("""
-	            {
-	                "error": "Invalid or expired JWT"
-	            }
-	        """);
-
-	        return;
 			
 		}
 	    
