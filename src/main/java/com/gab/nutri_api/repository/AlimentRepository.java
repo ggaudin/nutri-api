@@ -10,6 +10,6 @@ import com.gab.nutri_api.model.Aliment;
 @Repository
 public interface AlimentRepository extends CrudRepository<Aliment, Long>{
 	
-	List<Aliment> findByAlimNomFrContainingIgnoreCase(String recherche);
+	List<Aliment> findByNomContainingIgnoreCase(String recherche);
 
 }

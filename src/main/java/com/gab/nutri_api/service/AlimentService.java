@@ -24,7 +24,7 @@ public class AlimentService {
 	        return List.of();
 	    }
 		
-		List<Aliment> aliments = alimentRepo.findByAlimNomFrContainingIgnoreCase(motRecherche);
+		List<Aliment> aliments = alimentRepo.findByNomContainingIgnoreCase(motRecherche);
 		
 		List<AlimentRechercheDTO> listeAliments = new ArrayList<AlimentRechercheDTO>();
 		
