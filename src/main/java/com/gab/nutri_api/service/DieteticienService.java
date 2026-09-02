@@ -1,4 +1,4 @@
-package com.gab.nutri_api.service.auth;
+package com.gab.nutri_api.service;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -76,6 +76,9 @@ public class DieteticienService {
 	//Retourne les infos d'un patient à partir de son id, à condition que le diététicien connecté soit bien le diététicien du patient
 	public PatientResponse getPatient(Integer idPatient, String emailDiet) {
 		
+		
+		//TODO : créer une méthode pour récup patient + vérif diet
+		// La réutiliser dans Calulbesoinservice
 		Patient patient = patientRepo.findById(idPatient)
 				.orElseThrow(() -> new UsernameNotFoundException("Utilisateur introuvable"));
 				
