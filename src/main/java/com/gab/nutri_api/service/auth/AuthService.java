@@ -26,13 +26,13 @@ import jakarta.persistence.EntityNotFoundException;
 public class AuthService {
 	
 	@Autowired
-	private UtilisateurRepository utilisateurRepo;
+	private UtilisateurRepository utilisateurRepository;
 	
 	@Autowired
-	private PatientRepository patientRepo;
+	private PatientRepository patientRepository;
 	
 	@Autowired
-	private DieteticienRepository dieteticienRepo;
+	private DieteticienRepository dieteticienRepository;
 	
 	@Autowired
 	private PasswordEncoder passwordEncoder;
@@ -57,7 +57,7 @@ public class AuthService {
 		String hashedPassword = passwordEncoder.encode(registerRequest.getPassword());
 		utilisateur.setPassword(hashedPassword);
 		
-		utilisateurRepo.save(utilisateur);
+		utilisateurRepository.save(utilisateur);
 		
 		//Création patient ou diet
 		if(registerRequest.getRole() == RoleUtilisateur.DIETETICIEN) {
@@ -65,7 +65,7 @@ public class AuthService {
 			dieteticien.setRpps(registerRequest.getRpps());
 			dieteticien.setUtilisateur(utilisateur);
 			
-			dieteticienRepo.save(dieteticien);
+			dieteticienRepository.save(dieteticien);
 			
 		} else if(registerRequest.getRole() == RoleUtilisateur.PATIENT) {
 			Patient patient = new Patient();
@@ -77,13 +77,13 @@ public class AuthService {
 			patient.setDate(registerRequest.getDateDeNaissance());
 			
 			if(registerRequest.getDieteticienId() != null) {
-				Dieteticien diet = dieteticienRepo.findById(registerRequest.getDieteticienId())
+				Dieteticien diet = dieteticienRepository.findById(registerRequest.getDieteticienId())
 				        .orElseThrow(() -> new EntityNotFoundException("Diététicien introuvable"));
 				
 				patient.setDieteticien(diet);
 			}			
 			
-			patientRepo.save(patient);
+			patientRepository.save(patient);
 		}
 	}
 	
@@ -98,7 +98,7 @@ public class AuthService {
 		        		)
 		        );	
 		
-		Utilisateur utilisateur = utilisateurRepo.findByEmail(loginRequest.getEmail())
+		Utilisateur utilisateur = utilisateurRepository.findByEmail(loginRequest.getEmail())
 		        .orElseThrow(() -> new UsernameNotFoundException("Utilisateur introuvable"));
 
 		    String token = jwtService.generateToken(utilisateur);
@@ -113,7 +113,7 @@ public class AuthService {
 		
 		UserResponse userResponse = new UserResponse();
 		
-		Utilisateur utilisateur = utilisateurRepo.findByEmail(email).orElseThrow(() -> new RuntimeException("Utilisateur introuvable"));
+		Utilisateur utilisateur = utilisateurRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("Utilisateur introuvable"));
 		
 		userResponse.setEmail(utilisateur.getEmail());
 		userResponse.setId(utilisateur.getId());

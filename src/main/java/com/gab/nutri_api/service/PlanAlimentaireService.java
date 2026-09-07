@@ -10,7 +10,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import com.gab.nutri_api.dto.AlimentDTO;
+import com.gab.nutri_api.dto.AlimentResponse;
 import com.gab.nutri_api.dto.planalimentaire.ComposantRepasRequest;
 import com.gab.nutri_api.dto.planalimentaire.ComposantRepasResponse;
 import com.gab.nutri_api.dto.planalimentaire.PlanAlimentaireListResponse;
@@ -47,7 +47,7 @@ public class PlanAlimentaireService {
 	private PatientRepository patientRepository;
 
 	@Autowired
-	private DieteticienRepository dietRepository;
+	private DieteticienRepository dieteticienRepository;
 
 	@Autowired
 	private AlimentRepository alimentRepository;
@@ -117,7 +117,7 @@ public class PlanAlimentaireService {
 		Patient patient = patientRepository.findById(patientId)
 				.orElseThrow(() -> new UsernameNotFoundException("Utilisateur introuvable"));
 
-		Dieteticien dietConnecte = dietRepository.findByUtilisateurEmail(dietEmail)
+		Dieteticien dietConnecte = dieteticienRepository.findByUtilisateurEmail(dietEmail)
 				.orElseThrow(() -> new UsernameNotFoundException("Utilisateur introuvable"));
 
 		if (patient.getDieteticien() == null || !patient.getDieteticien().getId().equals(dietConnecte.getId())) {
@@ -138,7 +138,7 @@ public class PlanAlimentaireService {
 	public PlanAlimentaireResponse creerPlanAlimentaireTemplate(String dietEmail,
 			PlanAlimentaireRequest planAlimentaireRequest) {
 
-		Dieteticien dietConnecte = dietRepository.findByUtilisateurEmail(dietEmail)
+		Dieteticien dietConnecte = dieteticienRepository.findByUtilisateurEmail(dietEmail)
 				.orElseThrow(() -> new UsernameNotFoundException("Utilisateur introuvable"));
 
 		PlanAlimentaire planAlimentaire = new PlanAlimentaire();
@@ -163,7 +163,7 @@ public class PlanAlimentaireService {
 
 	public List<PlanAlimentaireListResponse> getPlansAlimentairesTemplates(String dietEmail) {
 
-		Dieteticien diet = dietRepository.findByUtilisateurEmail(dietEmail)
+		Dieteticien diet = dieteticienRepository.findByUtilisateurEmail(dietEmail)
 				.orElseThrow(() -> new UsernameNotFoundException("Dieteticien introuvable pour l'email :" + dietEmail));
 
 		List<PlanAlimentaire> listePlanAlimentaire = planAlimentaireRepository
@@ -200,7 +200,7 @@ public class PlanAlimentaireService {
 
 	private void verificationAccesPlanParDiet(String utilisateurEmail, PlanAlimentaire planAlimentaire) {
 
-		Dieteticien diet = dietRepository.findByUtilisateurEmail(utilisateurEmail).orElseThrow(
+		Dieteticien diet = dieteticienRepository.findByUtilisateurEmail(utilisateurEmail).orElseThrow(
 				() -> new UsernameNotFoundException("Dieteticien introuvable pour l'email :" + utilisateurEmail));
 
 		// Si le plan appartient à un patient sans diet -> Accès refusé
@@ -283,7 +283,7 @@ public class PlanAlimentaireService {
 		for (RepasResponse repas : planAlimentaireResponse.getRepas()) {
 			for (ComposantRepasResponse composantRepas : repas.getComposantsRepas()) {
 				BigDecimal quantite = composantRepas.getQuantite();
-				AlimentDTO aliment = alimentService.getAliment(composantRepas.getAlimentId());
+				AlimentResponse aliment = alimentService.getAlimentById(composantRepas.getAlimentId());
 
 				proteines = proteines.add(aliment.getProteines()
 						.multiply(quantite.divide(BigDecimal.valueOf(100), 1, RoundingMode.HALF_UP)));

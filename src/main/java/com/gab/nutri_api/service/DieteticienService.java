@@ -15,58 +15,52 @@ import com.gab.nutri_api.model.Dieteticien;
 import com.gab.nutri_api.model.Patient;
 import com.gab.nutri_api.repository.DieteticienRepository;
 import com.gab.nutri_api.repository.PatientRepository;
-import com.gab.nutri_api.repository.UtilisateurRepository;
 
 @Service
 public class DieteticienService {
 	
 	@Autowired
-	UtilisateurRepository utilisateurRepo;
+	private PatientRepository patientRepository;
 	
 	@Autowired
-	private PatientRepository patientRepo;
-	
-	@Autowired
-	private DieteticienRepository dieteticienRepo;
+	private DieteticienRepository dieteticienRepository;
 	
 	
 	//Retourne les données du profil d'un diet identifié par son email.
 	public DieteticienResponse getProfil(String email) {
-		DieteticienResponse dietDTO = new DieteticienResponse();
+		DieteticienResponse dieteticienResponse = new DieteticienResponse();
 		
-		Dieteticien diet = dieteticienRepo.findByUtilisateurEmail(email)
+		Dieteticien diet = dieteticienRepository.findByUtilisateurEmail(email)
 				.orElseThrow(() -> new UsernameNotFoundException("Utilisateur introuvable"));
 		
-		dietDTO.setId(diet.getId());
-		dietDTO.setEmail(diet.getUtilisateur().getEmail());
-		dietDTO.setNom(diet.getUtilisateur().getNom());
-		dietDTO.setPrenom(diet.getUtilisateur().getPrenom());
-		dietDTO.setRpps(diet.getRpps());
+		dieteticienResponse.setId(diet.getId());
+		dieteticienResponse.setEmail(diet.getUtilisateur().getEmail());
+		dieteticienResponse.setNom(diet.getUtilisateur().getNom());
+		dieteticienResponse.setPrenom(diet.getUtilisateur().getPrenom());
+		dieteticienResponse.setRpps(diet.getRpps());
 		
-		return dietDTO;
+		return dieteticienResponse;
 	}
 	
 	
 	//Retourne la liste des patients associés à un diététicien identifié par son email.
 	public List<PatientListResponse> getPatients(String email) {
 		
-		Dieteticien diet = dieteticienRepo.findByUtilisateurEmail(email)
+		Dieteticien diet = dieteticienRepository.findByUtilisateurEmail(email)
 				.orElseThrow(() -> new UsernameNotFoundException("Utilisateur introuvable"));
-		
-		Integer idDiet = diet.getId();
 		
 		List<PatientListResponse> patients = new ArrayList<PatientListResponse>();
 		
-		List<Patient> listePatients = patientRepo.findPatientByDieteticienId(idDiet);
+		List<Patient> listePatients = patientRepository.findPatientByDieteticienId(diet.getId());
 		
 		for(Patient patient : listePatients) {
 			
-			PatientListResponse patientLight = new PatientListResponse();
-			patientLight.setId(patient.getId());
-			patientLight.setNom(patient.getUtilisateur().getNom());
-			patientLight.setPrenom(patient.getUtilisateur().getPrenom());
+			PatientListResponse patientListResponse = new PatientListResponse();
+			patientListResponse.setId(patient.getId());
+			patientListResponse.setNom(patient.getUtilisateur().getNom());
+			patientListResponse.setPrenom(patient.getUtilisateur().getPrenom());
 			
-			patients.add(patientLight);
+			patients.add(patientListResponse);
 			
 		}
 		
@@ -74,9 +68,9 @@ public class DieteticienService {
 	}
 	
 	//Retourne les infos d'un patient à partir de son id, à condition que le diététicien connecté soit bien le diététicien du patient
-	public PatientResponse getPatient(Integer idPatient, String emailDiet) {
+	public PatientResponse getPatient(Integer idPatient, String dietEmail) {
 				
-		Patient patient = this.recuperationPatientEtVerificationAcces(idPatient, emailDiet);
+		Patient patient = this.recuperationPatientEtVerificationAcces(idPatient, dietEmail);
 				
 		PatientResponse patientResponse = new PatientResponse();
 		
@@ -98,10 +92,10 @@ public class DieteticienService {
 	// Récupère le patient en base et vérifie que le Diet connexté est bien son diet
 	public Patient recuperationPatientEtVerificationAcces(Integer patientId, String dietEmail) {
 		
-		Patient patient = patientRepo.findById(patientId)
+		Patient patient = patientRepository.findById(patientId)
 				.orElseThrow(() -> new UsernameNotFoundException("Utilisateur introuvable"));
 		
-		Dieteticien dietConnecte = dieteticienRepo.findByUtilisateurEmail(dietEmail)
+		Dieteticien dietConnecte = dieteticienRepository.findByUtilisateurEmail(dietEmail)
 				.orElseThrow(() -> new UsernameNotFoundException("Utilisateur introuvable"));
 		
 		if (patient.getDieteticien() == null || !patient.getDieteticien().getId().equals(dietConnecte.getId())) {

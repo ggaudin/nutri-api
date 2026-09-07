@@ -28,8 +28,8 @@ public class PlanAlimentaireController {
 
 	// Mise à jour plan alim si diet autorisé
 	@PutMapping("/palim/{id}")
-	public PlanAlimentaireResponse updatePlanAlimentaire(@PathVariable Integer planAlimentaireId, @RequestBody PlanAlimentaireRequest planAlimentaireRequest, Authentication authentication) {
-		return planAlimentaireService.updatePlanAlimentaire(planAlimentaireId, planAlimentaireRequest, authentication.getName());
+	public PlanAlimentaireResponse updatePlanAlimentaire(@PathVariable Integer id, @RequestBody PlanAlimentaireRequest planAlimentaireRequest, Authentication authentication) {
+		return planAlimentaireService.updatePlanAlimentaire(id, planAlimentaireRequest, authentication.getName());
 	}
 
 	// Suppression plan alim si diet autorisé

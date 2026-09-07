@@ -27,7 +27,7 @@ import com.gab.nutri_api.service.PlanAlimentaireService;
 public class DieteticienController {
 	
 	@Autowired
-	private DieteticienService dietService;
+	private DieteticienService dieteticienService;
 	
 	@Autowired
 	private CalculBesoinsService calculBesoinsService;
@@ -38,32 +38,32 @@ public class DieteticienController {
 	//Récupère les infos personnelles du diet connecté
 	@GetMapping("/profil")
     public DieteticienResponse getProfil(Authentication authentication) {
-        return dietService.getProfil(authentication.getName());
+        return dieteticienService.getProfil(authentication.getName());
     }
 	
 	//Récupère la liste des patients suivis par le diet connecté
 	@GetMapping("/patients")
     public List<PatientListResponse> getPatients(Authentication authentication) {
-        return dietService.getPatients(authentication.getName());
+        return dieteticienService.getPatients(authentication.getName());
     }
 	
 	//Récupère les infos du patient identifié par l'id à condition que le diet connecté soit son diet
 	@GetMapping("/patients/{id}")
-    public PatientResponse getPatient(@PathVariable Integer patientId, Authentication authentication) {
-        return dietService.getPatient(patientId, authentication.getName());
+    public PatientResponse getPatient(@PathVariable Integer id, Authentication authentication) {
+        return dieteticienService.getPatient(id, authentication.getName());
     }
 	
 	//Récupère les besoins nutritionnels d'un patient, calculés à partir de ses informations
 	@GetMapping("/patients/{id}/besoins")
-    public BesoinsResponse getBesoins(@PathVariable Integer patientId, Authentication authentication) {
-        return calculBesoinsService.getBesoins(patientId, authentication.getName());
+    public BesoinsResponse getBesoins(@PathVariable Integer id, Authentication authentication) {
+        return calculBesoinsService.getBesoins(id, authentication.getName());
     }
 	
 	//Crée et enregistre en base un nouveau plan alimentaire pour le patient concerné
 	@PostMapping("/patients/{id}/palim")
-	public PlanAlimentaireResponse creerPlanAlimentaire(@PathVariable Integer patientId, Authentication authentication, @RequestBody PlanAlimentaireRequest planAlimentaireRequest) {
+	public PlanAlimentaireResponse creerPlanAlimentaire(@PathVariable Integer id, Authentication authentication, @RequestBody PlanAlimentaireRequest planAlimentaireRequest) {
 		
-		return planAlimentaireService.creerPlanAlimentaire(patientId, authentication.getName(), planAlimentaireRequest);
+		return planAlimentaireService.creerPlanAlimentaire(id, authentication.getName(), planAlimentaireRequest);
 		
 	}
 	
@@ -77,9 +77,9 @@ public class DieteticienController {
 	
 	//Récupère la liste des Plans Alimentaires d'un patient
 	@GetMapping("/patients/{id}/palim")
-	public List<PlanAlimentaireListResponse> getPlansAlimentaires(@PathVariable Integer patientId, Authentication authentication) {
+	public List<PlanAlimentaireListResponse> getPlansAlimentaires(@PathVariable Integer id, Authentication authentication) {
 	     
-		return planAlimentaireService.getPlansAlimentaires(patientId, authentication.getName());
+		return planAlimentaireService.getPlansAlimentaires(id, authentication.getName());
 	        
 	}
 	

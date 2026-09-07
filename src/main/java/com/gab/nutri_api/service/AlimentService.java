@@ -6,8 +6,8 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.gab.nutri_api.dto.AlimentDTO;
-import com.gab.nutri_api.dto.AlimentRechercheDTO;
+import com.gab.nutri_api.dto.AlimentResponse;
+import com.gab.nutri_api.dto.AlimentRechercheResponse;
 import com.gab.nutri_api.model.Aliment;
 import com.gab.nutri_api.model.CompositionAliment;
 import com.gab.nutri_api.repository.AlimentRepository;
@@ -16,26 +16,26 @@ import com.gab.nutri_api.repository.AlimentRepository;
 public class AlimentService {
 	
 	@Autowired
-	AlimentRepository alimentRepo;
+	AlimentRepository alimentRepository;
 	
-	public List<AlimentRechercheDTO> rechercheAliment(String motRecherche){
+	public List<AlimentRechercheResponse> rechercheAliment(String motRecherche){
 		
 		if (motRecherche == null || motRecherche.trim().length() < 2) {
 	        return List.of();
 	    }
 		
-		List<Aliment> aliments = alimentRepo.findByNomContainingIgnoreCase(motRecherche);
+		List<Aliment> aliments = alimentRepository.findByNomContainingIgnoreCase(motRecherche);
 		
-		List<AlimentRechercheDTO> listeAliments = new ArrayList<AlimentRechercheDTO>();
+		List<AlimentRechercheResponse> listeAliments = new ArrayList<AlimentRechercheResponse>();
 		
 		for (Aliment aliment : aliments) {
 			
-			AlimentRechercheDTO alimDTO = new AlimentRechercheDTO();
+			AlimentRechercheResponse alimentRechercheResponse = new AlimentRechercheResponse();
 			
-			alimDTO.setId(aliment.getId());
-			alimDTO.setNom(aliment.getNom());
+			alimentRechercheResponse.setId(aliment.getId());
+			alimentRechercheResponse.setNom(aliment.getNom());
 			
-			listeAliments.add(alimDTO);
+			listeAliments.add(alimentRechercheResponse);
 		}
 
 		return listeAliments;
@@ -43,15 +43,15 @@ public class AlimentService {
 	}
 	
 	
-	public AlimentDTO getAliment(Long id) {
+	public AlimentResponse getAlimentById(Long alimentId) {
 		
-		Aliment aliment = alimentRepo.findById(id)
-			    .orElseThrow(() -> new RuntimeException("Aliment non trouvé pour l'id : " + id));
+		Aliment aliment = alimentRepository.findById(alimentId)
+			    .orElseThrow(() -> new RuntimeException("Aliment non trouvé pour l'id : " + alimentId));
 		
-		AlimentDTO alimDTO = new AlimentDTO();
+		AlimentResponse alimentResponse = new AlimentResponse();
 		
-		alimDTO.setId(aliment.getId());
-		alimDTO.setNom(aliment.getNom());
+		alimentResponse.setId(aliment.getId());
+		alimentResponse.setNom(aliment.getNom());
 		
 		List <CompositionAliment> compositions = aliment.getCompo();
 		
@@ -60,13 +60,13 @@ public class AlimentService {
 			Integer code = compo.getConstituant().getCode();
 
 		    switch (code) {
-		        case 25000 -> alimDTO.setProteines(compo.getTeneur());
-		        case 31000 -> alimDTO.setGlucides(compo.getTeneur());
-		        case 40000 -> alimDTO.setLipides(compo.getTeneur());
+		        case 25000 -> alimentResponse.setProteines(compo.getTeneur());
+		        case 31000 -> alimentResponse.setGlucides(compo.getTeneur());
+		        case 40000 -> alimentResponse.setLipides(compo.getTeneur());
 		    }
 		}
 		
-		return alimDTO;
+		return alimentResponse;
 			
 	}
 	

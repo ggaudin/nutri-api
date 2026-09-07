@@ -2,7 +2,7 @@ package com.gab.nutri_api.dto;
 
 import java.math.BigDecimal;
 
-public class AlimentDTO {
+public class AlimentResponse {
 	
 	private Long id;
 	private String nom;

@@ -11,26 +11,11 @@ public class NutriApiApplication implements CommandLineRunner{
 		SpringApplication.run(NutriApiApplication.class, args);
 	}
 	
-//	@Autowired
-//	PasswordEncoder passwordEncoder;
-//	
-//	@Autowired
-//	UtilisateurRepository utilisateurRepo;
 
 	@Override
 	public void run(String... args) throws Exception {
 		// TODO Auto-generated method stub
 		
-//		Utilisateur admin = new Utilisateur();
-//		admin.setEmail("admin@test.com");
-//		
-//		String password = "admin";
-//		String hashedPassword = passwordEncoder.encode(password);
-//		admin.setPassword(hashedPassword);
-//		
-//		admin.setRole(RoleUtilisateur.ADMIN);
-//		
-//		utilisateurRepo.save(admin);
 	}
 
 }

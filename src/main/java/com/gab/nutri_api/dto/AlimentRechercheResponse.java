@@ -1,6 +1,6 @@
 package com.gab.nutri_api.dto;
 
-public class AlimentRechercheDTO {
+public class AlimentRechercheResponse {
 	
 	private Long id;
 	private String nom;

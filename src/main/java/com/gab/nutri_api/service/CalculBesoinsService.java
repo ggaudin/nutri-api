@@ -15,13 +15,13 @@ import com.gab.nutri_api.model.enums.GenrePatient;
 public class CalculBesoinsService {
 	
 	@Autowired
-	private DieteticienService dietService;
+	private DieteticienService dieteticienService;
 	
 	public BesoinsResponse getBesoins(Integer patientId, String dietEmail) {
 		
 		//Récupération des données du patient
 		//Diététicien connecté = diet du patient ?
-		Patient patient = dietService.recuperationPatientEtVerificationAcces(patientId, dietEmail);
+		Patient patient = dieteticienService.recuperationPatientEtVerificationAcces(patientId, dietEmail);
 		
 		int age = calculAge(patient);
 			
