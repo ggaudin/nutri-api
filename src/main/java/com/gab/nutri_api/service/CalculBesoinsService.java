@@ -5,43 +5,25 @@ import java.time.LocalDate;
 import java.time.Period;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import com.gab.nutri_api.dto.BesoinsResponse;
-import com.gab.nutri_api.model.Dieteticien;
 import com.gab.nutri_api.model.Patient;
 import com.gab.nutri_api.model.enums.GenrePatient;
-import com.gab.nutri_api.repository.DieteticienRepository;
-import com.gab.nutri_api.repository.PatientRepository;
 
 @Service
 public class CalculBesoinsService {
 	
 	@Autowired
-	PatientRepository patientRepo;
-	
-	@Autowired
-	DieteticienRepository dieteticienRepo;
+	private DieteticienService dietService;
 	
 	public BesoinsResponse getBesoins(Integer patientId, String dietEmail) {
 		
 		//Récupération des données du patient
-		Patient patient = patientRepo.findById(patientId)
-				.orElseThrow(() -> new UsernameNotFoundException("Utilisateur introuvable"));
+		//Diététicien connecté = diet du patient ?
+		Patient patient = dietService.recuperationPatientEtVerificationAcces(patientId, dietEmail);
 		
 		int age = calculAge(patient);
-		
-		
-		//Diététicien connecté = diet du patient ?
-		Dieteticien dietConnecte = dieteticienRepo.findByUtilisateurEmail(dietEmail)
-				.orElseThrow(() -> new UsernameNotFoundException("Utilisateur introuvable"));
-		
-		if (patient.getDieteticien() == null || !patient.getDieteticien().getId().equals(dietConnecte.getId())) {
-	        throw new AccessDeniedException("Vous n'avez pas accès à ce patient");
-	    }
-		
 			
 		//Calcul du BEJ en Kj
 		Integer bejKj = calculBEJKj(patient, age);

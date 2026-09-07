@@ -75,20 +75,9 @@ public class DieteticienService {
 	
 	//Retourne les infos d'un patient à partir de son id, à condition que le diététicien connecté soit bien le diététicien du patient
 	public PatientResponse getPatient(Integer idPatient, String emailDiet) {
-		
-		
-		//TODO : créer une méthode pour récup patient + vérif diet
-		// La réutiliser dans Calulbesoinservice
-		Patient patient = patientRepo.findById(idPatient)
-				.orElseThrow(() -> new UsernameNotFoundException("Utilisateur introuvable"));
 				
-		Dieteticien dietConnecte = dieteticienRepo.findByUtilisateurEmail(emailDiet)
-				.orElseThrow(() -> new UsernameNotFoundException("Utilisateur introuvable"));
-		
-		if (patient.getDieteticien() == null || !patient.getDieteticien().getId().equals(dietConnecte.getId())) {
-	        throw new AccessDeniedException("Vous n'avez pas accès à ce patient");
-	    }
-		
+		Patient patient = this.recuperationPatientEtVerificationAcces(idPatient, emailDiet);
+				
 		PatientResponse patientResponse = new PatientResponse();
 		
 		patientResponse.setId(patient.getId());
@@ -103,5 +92,26 @@ public class DieteticienService {
 		
 		return patientResponse;
 	}
+	
+	
+	
+	// Récupère le patient en base et vérifie que le Diet connexté est bien son diet
+	public Patient recuperationPatientEtVerificationAcces(Integer patientId, String dietEmail) {
+		
+		Patient patient = patientRepo.findById(patientId)
+				.orElseThrow(() -> new UsernameNotFoundException("Utilisateur introuvable"));
+		
+		Dieteticien dietConnecte = dieteticienRepo.findByUtilisateurEmail(dietEmail)
+				.orElseThrow(() -> new UsernameNotFoundException("Utilisateur introuvable"));
+		
+		if (patient.getDieteticien() == null || !patient.getDieteticien().getId().equals(dietConnecte.getId())) {
+	        throw new AccessDeniedException("Vous n'avez pas accès à ce patient");
+	    }
+		
+		return patient;
+		
+	}
+	
+	
 
 }

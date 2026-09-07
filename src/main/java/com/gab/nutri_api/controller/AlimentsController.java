@@ -18,7 +18,7 @@ import com.gab.nutri_api.service.AlimentService;
 public class AlimentsController {
 	
 	@Autowired
-	AlimentService alimentService;
+	private AlimentService alimentService;
 	
 	
 	//Recherche aliment
@@ -34,8 +34,7 @@ public class AlimentsController {
 	}
 	
 
-//	
-//	//Pour aliments personnalisés (plus tard)
+//	Pour aliments personnalisés (plus tard)
 //	POST /aliments
 //	PUT /aliments/{id}
 //	DELETE /aliments/{id}

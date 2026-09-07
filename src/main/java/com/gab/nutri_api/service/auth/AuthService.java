@@ -26,7 +26,7 @@ import jakarta.persistence.EntityNotFoundException;
 public class AuthService {
 	
 	@Autowired
-	UtilisateurRepository utilisateurRepo;
+	private UtilisateurRepository utilisateurRepo;
 	
 	@Autowired
 	private PatientRepository patientRepo;

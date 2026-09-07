@@ -1,7 +1,9 @@
 package com.gab.nutri_api.model;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -16,22 +18,22 @@ import jakarta.persistence.Table;
 @Entity
 @Table(name = "repas")
 public class Repas {
-	
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Integer id;
-	
+
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)
 	@JoinColumn(name = "planalimentaire_id", nullable = false)
 	private PlanAlimentaire planAlim;
-	
+
 	@Column(length = 255)
 	private String nom;
-	
+
 	private Integer rang;
-	
-	@OneToMany(mappedBy = "repas")
-	private List<ComposantRepas> composantsRepas;
+
+	@OneToMany(mappedBy = "repas", cascade = CascadeType.ALL, orphanRemoval = true)
+	private List<ComposantRepas> composantsRepas = new ArrayList<>();
 
 	public Integer getId() {
 		return id;
@@ -64,7 +66,7 @@ public class Repas {
 	public void setRang(Integer rang) {
 		this.rang = rang;
 	}
-	
+
 	public List<ComposantRepas> getComposantsRepas() {
 		return composantsRepas;
 	}

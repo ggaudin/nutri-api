@@ -1,10 +1,12 @@
 package com.gab.nutri_api.model;
 
+import java.util.ArrayList;
 import java.util.List;
 
-import com.gab.nutri_api.model.enums.ScopePlan;
 import com.gab.nutri_api.model.enums.TypePlan;
+import com.gab.nutri_api.model.enums.VisibilitePlan;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -20,38 +22,37 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name="planalimentaire")
+@Table(name = "planalimentaire")
 public class PlanAlimentaire {
-	
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Integer id;
-	
+
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "patient_id")
 	private Patient patient;
-	
-	
-	@ManyToOne(fetch = FetchType.LAZY, optional = false)
-	@JoinColumn(name = "dieteticien_id", nullable = false)
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "dieteticien_id")
 	private Dieteticien dieteticien;
-	
+
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false)
 	private TypePlan type = TypePlan.PERSONNALISE;
-	
+
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false)
-	private ScopePlan scope = ScopePlan.PRIVATE;
-	
+	private VisibilitePlan visibilite = VisibilitePlan.PRIVATE;
+
 	@Column(length = 255)
 	private String nom;
-	
+
 	@Lob
 	private String notes;
-	
-	@OneToMany(mappedBy = "planAlim")
-	private List<Repas> listeRepas;
+
+	@OneToMany(mappedBy = "planAlim", cascade = CascadeType.ALL, orphanRemoval = true)
+	private List<Repas> listeRepas = new ArrayList<>();
 
 	public Integer getId() {
 		return id;
@@ -85,12 +86,12 @@ public class PlanAlimentaire {
 		this.type = type;
 	}
 
-	public ScopePlan getScope() {
-		return scope;
+	public VisibilitePlan getVisibilite() {
+		return visibilite;
 	}
 
-	public void setScope(ScopePlan scope) {
-		this.scope = scope;
+	public void setVisibilite(VisibilitePlan visibilite) {
+		this.visibilite = visibilite;
 	}
 
 	public String getNom() {
@@ -117,5 +118,4 @@ public class PlanAlimentaire {
 		this.listeRepas = listeRepas;
 	}
 
-	
 }
