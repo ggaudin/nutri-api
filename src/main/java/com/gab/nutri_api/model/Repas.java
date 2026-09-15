@@ -35,6 +35,17 @@ public class Repas {
 	@OneToMany(mappedBy = "repas", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<ComposantRepas> composantsRepas = new ArrayList<>();
 
+	public void ajouterComposantRepas(ComposantRepas composantRepas) {
+		composantsRepas.add(composantRepas);
+		composantRepas.setRepas(this);
+	}
+	
+	public void supprimerComposantRepas(ComposantRepas composantRepas) {
+		composantsRepas.remove(composantRepas);
+	}
+	
+	
+	
 	public Integer getId() {
 		return id;
 	}

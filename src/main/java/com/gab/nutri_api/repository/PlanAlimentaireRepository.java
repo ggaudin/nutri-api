@@ -14,6 +14,6 @@ public interface PlanAlimentaireRepository extends CrudRepository<PlanAlimentair
 	
 	List<PlanAlimentaire> findByPatientId(Integer patientId);
 	
-	List<PlanAlimentaire> findByDieteticienIdAndTypePlanOrVisibilitePlan(Integer dieteticienId, TypePlan typePlan, VisibilitePlan visibilitePlan);
+	List<PlanAlimentaire> findByDieteticienIdAndTypeOrVisibilite(Integer dieteticienId, TypePlan typePlan, VisibilitePlan visibilitePlan);
 
 }

@@ -5,10 +5,17 @@ import java.util.List;
 
 public class RepasRequest {
 	
+	private Integer id;
 	private String nom;
 	private Integer rang;
 	private List<ComposantRepasRequest> composantsRepas = new ArrayList<>();
 	
+	public Integer getId() {
+		return id;
+	}
+	public void setId(Integer id) {
+		this.id = id;
+	}
 	public String getNom() {
 		return nom;
 	}

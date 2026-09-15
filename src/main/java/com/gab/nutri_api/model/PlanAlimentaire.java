@@ -38,11 +38,11 @@ public class PlanAlimentaire {
 	private Dieteticien dieteticien;
 
 	@Enumerated(EnumType.STRING)
-	@Column(nullable = false)
+	@Column(name="type", nullable = false)
 	private TypePlan type = TypePlan.PERSONNALISE;
 
 	@Enumerated(EnumType.STRING)
-	@Column(nullable = false)
+	@Column(name="scope", nullable = false)
 	private VisibilitePlan visibilite = VisibilitePlan.PRIVATE;
 
 	@Column(length = 255)
@@ -54,6 +54,15 @@ public class PlanAlimentaire {
 	@OneToMany(mappedBy = "planAlim", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<Repas> listeRepas = new ArrayList<>();
 
+	public void ajouterRepas(Repas repas) {
+		listeRepas.add(repas);
+		repas.setPlanAlim(this);
+	}
+	
+	public void supprimerRepas(Repas repas) {
+		listeRepas.remove(repas);
+	}
+	
 	public Integer getId() {
 		return id;
 	}

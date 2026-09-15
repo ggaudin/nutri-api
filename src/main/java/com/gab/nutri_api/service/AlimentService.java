@@ -1,5 +1,6 @@
 package com.gab.nutri_api.service;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -60,9 +61,9 @@ public class AlimentService {
 			Integer code = compo.getConstituant().getCode();
 
 		    switch (code) {
-		        case 25000 -> alimentResponse.setProteines(compo.getTeneur());
-		        case 31000 -> alimentResponse.setGlucides(compo.getTeneur());
-		        case 40000 -> alimentResponse.setLipides(compo.getTeneur());
+		        case 25000 -> alimentResponse.setProteines(compo.getTeneur() == null ? BigDecimal.ZERO : compo.getTeneur());
+		        case 31000 -> alimentResponse.setGlucides(compo.getTeneur() == null ? BigDecimal.ZERO : compo.getTeneur());
+		        case 40000 -> alimentResponse.setLipides(compo.getTeneur() == null ? BigDecimal.ZERO : compo.getTeneur());
 		    }
 		}
 		

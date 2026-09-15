@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
@@ -57,6 +58,8 @@ public class PlanAlimentaireService {
 
 	@Autowired
 	private DieteticienService dieteticienService;
+	
+	
 
 	public PlanAlimentaireResponse getPlanAlimentaireById(Integer planAlimentaireId, String utilisateurEmail) {
 
@@ -85,7 +88,7 @@ public class PlanAlimentaireService {
 
 		verificationAccesPlanParDiet(utilisateurEmail, planAlimentaire);
 
-		planAlimentaire = constructionPlanAlimentaire(planAlimentaire, planAlimentaireRequest);
+		planAlimentaire = miseAJourPlanAlimentaire(planAlimentaire, planAlimentaireRequest);
 
 		planAlimentaireRepository.save(planAlimentaire);
 
@@ -167,7 +170,7 @@ public class PlanAlimentaireService {
 				.orElseThrow(() -> new UsernameNotFoundException("Dieteticien introuvable pour l'email :" + dietEmail));
 
 		List<PlanAlimentaire> listePlanAlimentaire = planAlimentaireRepository
-				.findByDieteticienIdAndTypePlanOrVisibilitePlan(diet.getId(), TypePlan.TEMPLATE, VisibilitePlan.GLOBAL);
+				.findByDieteticienIdAndTypeOrVisibilite(diet.getId(), TypePlan.TEMPLATE, VisibilitePlan.GLOBAL);
 
 		return construireListePlanAlimentaireListResponse(listePlanAlimentaire);
 	}
@@ -283,13 +286,13 @@ public class PlanAlimentaireService {
 		for (RepasResponse repas : planAlimentaireResponse.getRepas()) {
 			for (ComposantRepasResponse composantRepas : repas.getComposantsRepas()) {
 				BigDecimal quantite = composantRepas.getQuantite();
-				AlimentResponse aliment = alimentService.getAlimentById(composantRepas.getAlimentId());
+				AlimentResponse alimentResponse = alimentService.getAlimentById(composantRepas.getAlimentId());
 
-				proteines = proteines.add(aliment.getProteines()
+				proteines = proteines.add(alimentResponse.getProteines()
 						.multiply(quantite.divide(BigDecimal.valueOf(100), 1, RoundingMode.HALF_UP)));
-				glucides = glucides.add(aliment.getGlucides()
+				glucides = glucides.add(alimentResponse.getGlucides()
 						.multiply(quantite.divide(BigDecimal.valueOf(100), 1, RoundingMode.HALF_UP)));
-				lipides = lipides.add(aliment.getLipides()
+				lipides = lipides.add(alimentResponse.getLipides()
 						.multiply(quantite.divide(BigDecimal.valueOf(100), 1, RoundingMode.HALF_UP)));
 			}
 		}
@@ -308,41 +311,128 @@ public class PlanAlimentaireService {
 
 	}
 
+	private PlanAlimentaire miseAJourPlanAlimentaire(PlanAlimentaire planAlimentaire,
+			PlanAlimentaireRequest planAlimentaireRequest) {
+
+		planAlimentaire.setNom(planAlimentaireRequest.getNom());
+		planAlimentaire.setNotes(planAlimentaireRequest.getNotes());
+
+		synchroniserLesRepas(planAlimentaire, planAlimentaireRequest);
+
+		return planAlimentaire;
+	}
+
+	private void synchroniserLesRepas(PlanAlimentaire planAlimentaire, PlanAlimentaireRequest planAlimentaireRequest) {
+
+		// Mise à jour et création
+		for (RepasRequest repasRequest : planAlimentaireRequest.getRepas()) {
+
+			boolean existeEnBase = false;
+
+			for (Repas repas : planAlimentaire.getListeRepas()) {
+
+				if (repasRequest.getId() != null && Objects.equals(repasRequest.getId(), repas.getId())) {
+
+					existeEnBase = true;
+
+					repas.setNom(repasRequest.getNom());
+					repas.setRang(repasRequest.getRang());
+					synchroniserLesComposantsRepas(repas, repasRequest);
+					break;
+				}
+			}
+
+			if (!existeEnBase) {
+				Repas repas = construireRepas(repasRequest, planAlimentaire);
+				planAlimentaire.ajouterRepas(repas);
+			}
+		}
+
+		
+		// Suppression
+		planAlimentaire.getListeRepas().removeIf(repas -> planAlimentaireRequest.getRepas().stream()
+			.noneMatch(repasRequest -> Objects.equals(repas.getId(), repasRequest.getId())));
+		
+	}
+
+	private void synchroniserLesComposantsRepas(Repas repas, RepasRequest repasRequest) {
+
+		// Mise à jour et création
+		for (ComposantRepasRequest composantRepasRequest : repasRequest.getComposantsRepas()) {
+
+			boolean existeEnBase = false;
+
+			for (ComposantRepas composantRepas : repas.getComposantsRepas()) {
+
+				if (composantRepasRequest.getId() != null && Objects.equals(composantRepasRequest.getId(), composantRepas.getId())) {
+
+					existeEnBase = true;
+
+					composantRepas.setNom(composantRepasRequest.getNom());
+					composantRepas.setQuantite(composantRepasRequest.getQuantite());
+					
+					if (composantRepas.getAliment() == null || !Objects.equals(composantRepas.getAliment().getId(), composantRepasRequest.getAlimentId())) {
+						Aliment aliment = alimentRepository.findById(composantRepasRequest.getAlimentId()).orElseThrow(
+								() -> new RuntimeException("Aliment non trouvé pour l'id : " + composantRepasRequest.getAlimentId()));
+
+						composantRepas.setAliment(aliment);
+					}
+					break;
+				}
+			}
+
+			if (!existeEnBase) {
+				ComposantRepas composantRepas = construireComposantRepas(composantRepasRequest, repas);
+				repas.ajouterComposantRepas(composantRepas);
+			}
+		}
+
+		// Suppression
+		repas.getComposantsRepas().removeIf(composantRepas -> repasRequest.getComposantsRepas().stream()
+				.noneMatch(composantRepasRequest -> Objects.equals(composantRepas.getId(), composantRepasRequest.getId())));
+			
+	}
+
 	private PlanAlimentaire constructionPlanAlimentaire(PlanAlimentaire planAlimentaire,
 			PlanAlimentaireRequest planAlimentaireRequest) {
 
 		planAlimentaire.setNom(planAlimentaireRequest.getNom());
 		planAlimentaire.setNotes(planAlimentaireRequest.getNotes());
 
-		List<Repas> listeRepas = new ArrayList<>();
-
 		for (RepasRequest repasRequest : planAlimentaireRequest.getRepas()) {
-			Repas repas = new Repas();
-			repas.setNom(repasRequest.getNom());
-			repas.setRang(repasRequest.getRang());
 
-			List<ComposantRepas> listeComposantsRepas = new ArrayList<>();
+			Repas repas = construireRepas(repasRequest, planAlimentaire);
+			planAlimentaire.ajouterRepas(repas);
 
-			for (ComposantRepasRequest composantRepasRequest : repasRequest.getComposantsRepas()) {
-				ComposantRepas composantRepas = new ComposantRepas();
-				composantRepas.setNom(composantRepasRequest.getNom());
-				composantRepas.setQuantite(composantRepasRequest.getQuantite());
-
-				Aliment aliment = alimentRepository.findById(composantRepasRequest.getAlimentId())
-						.orElseThrow(() -> new RuntimeException(
-								"Aliment non trouvé pour l'id : " + composantRepasRequest.getAlimentId()));
-
-				composantRepas.setAliment(aliment);
-
-				listeComposantsRepas.add(composantRepas);
-			}
-
-			listeRepas.add(repas);
 		}
 
-		planAlimentaire.setListeRepas(listeRepas);
-
 		return planAlimentaire;
+	}
+
+	private Repas construireRepas(RepasRequest repasRequest, PlanAlimentaire planAlimentaire) {
+		Repas repas = new Repas();
+		repas.setNom(repasRequest.getNom());
+		repas.setRang(repasRequest.getRang());
+
+		for (ComposantRepasRequest composantRepasRequest : repasRequest.getComposantsRepas()) {
+			ComposantRepas composantRepas = construireComposantRepas(composantRepasRequest, repas);
+			repas.ajouterComposantRepas(composantRepas);
+		}
+
+		return repas;
+	}
+
+	private ComposantRepas construireComposantRepas(ComposantRepasRequest composantRepasRequest, Repas repas) {
+		ComposantRepas composantRepas = new ComposantRepas();
+		composantRepas.setNom(composantRepasRequest.getNom());
+		composantRepas.setQuantite(composantRepasRequest.getQuantite());
+
+		Aliment aliment = alimentRepository.findById(composantRepasRequest.getAlimentId()).orElseThrow(
+				() -> new RuntimeException("Aliment non trouvé pour l'id : " + composantRepasRequest.getAlimentId()));
+
+		composantRepas.setAliment(aliment);
+
+		return composantRepas;
 	}
 
 	private List<PlanAlimentaireListResponse> construireListePlanAlimentaireListResponse(
@@ -355,6 +445,7 @@ public class PlanAlimentaireService {
 			PlanAlimentaireListResponse planAlimentaireListResponse = new PlanAlimentaireListResponse();
 			planAlimentaireListResponse.setId(planAlimentaire.getId());
 			planAlimentaireListResponse.setNom(planAlimentaire.getNom());
+			listePlanAlimentaireResponse.add(planAlimentaireListResponse);
 
 		}
 

@@ -4,11 +4,17 @@ import java.math.BigDecimal;
 
 public class ComposantRepasRequest {
 	
+	private Integer id;
 	private String nom;
 	private BigDecimal quantite;
 	private Long alimentId;
 	
-	
+	public Integer getId() {
+		return id;
+	}
+	public void setId(Integer id) {
+		this.id = id;
+	}
 	public String getNom() {
 		return nom;
 	}
