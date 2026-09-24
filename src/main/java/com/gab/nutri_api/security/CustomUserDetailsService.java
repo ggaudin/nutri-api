@@ -3,7 +3,6 @@ package com.gab.nutri_api.security;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
@@ -18,8 +17,12 @@ import com.gab.nutri_api.repository.UtilisateurRepository;
 @Service
 public class CustomUserDetailsService implements UserDetailsService {
 	
-	@Autowired
-	private UtilisateurRepository utilisateurRepo;
+	private final UtilisateurRepository utilisateurRepo;
+	
+	public CustomUserDetailsService(UtilisateurRepository utilisateurRepo) {
+		super();
+		this.utilisateurRepo = utilisateurRepo;
+	}
 
 	@Override
 	public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {

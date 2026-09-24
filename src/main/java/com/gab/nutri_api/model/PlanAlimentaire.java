@@ -61,6 +61,7 @@ public class PlanAlimentaire {
 	
 	public void supprimerRepas(Repas repas) {
 		listeRepas.remove(repas);
+		repas.setPlanAlim(null);
 	}
 	
 	public Integer getId() {

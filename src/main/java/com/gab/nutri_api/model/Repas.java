@@ -42,6 +42,7 @@ public class Repas {
 	
 	public void supprimerComposantRepas(ComposantRepas composantRepas) {
 		composantsRepas.remove(composantRepas);
+		composantRepas.setRepas(null);
 	}
 	
 	

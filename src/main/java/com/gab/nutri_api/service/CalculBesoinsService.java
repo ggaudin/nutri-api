@@ -4,33 +4,38 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.Period;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.gab.nutri_api.dto.BesoinsResponse;
+import com.gab.nutri_api.dto.PatientDieteticien;
 import com.gab.nutri_api.model.Patient;
 import com.gab.nutri_api.model.enums.GenrePatient;
 
 @Service
 public class CalculBesoinsService {
+
+	private final AccessService planAlimentaireAccessService;
 	
-	@Autowired
-	private DieteticienService dieteticienService;
-	
+	public CalculBesoinsService(AccessService planAlimentaireAccessService) {
+		super();
+		this.planAlimentaireAccessService = planAlimentaireAccessService;
+	}
+
 	public BesoinsResponse getBesoins(Integer patientId, String dietEmail) {
-		
-		//Récupération des données du patient
-		//Diététicien connecté = diet du patient ?
-		Patient patient = dieteticienService.recuperationPatientEtVerificationAcces(patientId, dietEmail);
-		
-		int age = calculAge(patient);
-			
-		//Calcul du BEJ en Kj
-		Integer bejKj = calculBEJKj(patient, age);
-		
-		//Calcul des besoins P, G, L
+
+		// Récupération des données du patient
+		// Diététicien connecté = diet du patient ?
+		PatientDieteticien patientDieteticien = planAlimentaireAccessService
+				.recuperationPatientDieteticienEtVerificationAcces(patientId, dietEmail);
+
+		int age = calculAge(patientDieteticien.patient());
+
+		// Calcul du BEJ en Kj
+		Integer bejKj = calculBEJKj(patientDieteticien.patient(), age);
+
+		// Calcul des besoins P, G, L
 		BesoinsResponse besoins = new BesoinsResponse();
-		
+
 		besoins.setPatientId(patientId);
 		besoins.setBej(calculBEJkcal(bejKj));
 		besoins.setProteinesMin((int) Math.round(bejKj * 0.1 / 17));
@@ -39,51 +44,45 @@ public class CalculBesoinsService {
 		besoins.setLipidesMax((int) Math.round(bejKj * 0.4 / 38));
 		besoins.setGlucidesMin((int) Math.round(bejKj * 0.4 / 17));
 		besoins.setGlucidesMax((int) Math.round(bejKj * 0.55 / 17));
-		
-		
+
 		return besoins;
 	}
-	
-	
+
 	private Integer calculBEJKj(Patient patient, int age) {
-		
+
 		double taille = patient.getTaille().doubleValue();
 		double poids = patient.getPoids().doubleValue();
 		double nap = patient.getNap().doubleValue();
-		
+
 		Integer bejKJ = null;
 		// Cas des enfants/ados non pris en compte pour le moment, le BEJ sera null
-		
+
 		if (age > 17) {
-			
+
 			BigDecimal coef;
-			
+
 			if (patient.getGenre() == GenrePatient.HOMME) {
 				coef = new BigDecimal("1.083");
 			} else {
 				coef = new BigDecimal("0.963");
 			}
-			
-			//métabolisme de base avec formule Black et al.
-			double mb = coef.doubleValue()
-					* Math.pow(poids, 0.48)
-		            * Math.pow(taille, 0.50)
-		            * Math.pow(age, -0.13);
-			
-			
+
+			// métabolisme de base avec formule Black et al.
+			double mb = coef.doubleValue() * Math.pow(poids, 0.48) * Math.pow(taille, 0.50) * Math.pow(age, -0.13);
+
 			bejKJ = (int) Math.round(mb * nap * 1000);
-			
+
 		}
-		
+
 		return bejKJ;
 	}
-	
+
 	private Integer calculBEJkcal(Integer bejKJ) {
 		return (int) Math.round(bejKJ / 4.184);
 	}
-	
+
 	private int calculAge(Patient patient) {
-		
+
 		return Period.between(patient.getDate(), LocalDate.now()).getYears();
 	}
 

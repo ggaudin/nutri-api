@@ -2,7 +2,6 @@ package com.gab.nutri_api.config;
 
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -29,97 +28,91 @@ import jakarta.servlet.http.HttpServletResponse;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
-	
-	@Autowired
-	private JwtAuthenticationFilter jwtAuthenticationFilter;
-	
-	@Autowired
-	private CustomUserDetailsService userDetailsService;
-	
+
+	private final JwtAuthenticationFilter jwtAuthenticationFilter;
+	private final CustomUserDetailsService userDetailsService;
+
+	public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter,
+			CustomUserDetailsService userDetailsService) {
+		super();
+		this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+		this.userDetailsService = userDetailsService;
+	}
+
 	@Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
-	
+	public PasswordEncoder passwordEncoder() {
+		return new BCryptPasswordEncoder();
+	}
+
 	@Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
-        http.csrf(csrf -> csrf.disable())  //csrf non utile si présence d'un jwt dans le header HTTP
+		http.csrf(csrf -> csrf.disable()) // csrf non utile si présence d'un jwt dans le header HTTP
 
-        	.cors(Customizer.withDefaults())
-        	
-        	.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-        	
-        	.exceptionHandling(exception -> exception.authenticationEntryPoint((request, response, authException) -> {
-        	            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
-        	        })
-        	    )
-        
-            .authorizeHttpRequests(auth -> auth
+				.cors(Customizer.withDefaults())
 
-                //url accessibles à tous
-                .requestMatchers("/auth/inscription", "/auth/connexion").permitAll()
-                
-              //url accessibles seulements en fonction du rôle
-                .requestMatchers("/diet/**").hasRole("DIETETICIEN")
-                .requestMatchers("/patient/**").hasRole("PATIENT")
-                .requestMatchers("/admin/**").hasRole("ADMIN")
+				.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
-                //toutes les autres sont accessibles via authentification
-                .anyRequest().authenticated()
-                
-            )
-            
-            .authenticationProvider(authenticationProvider())
-            
-            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+				.exceptionHandling(
+						exception -> exception.authenticationEntryPoint((request, response, authException) -> {
+							response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
+						}))
 
-        return http.build();
-    }
-	
+				.authorizeHttpRequests(auth -> auth
+
+						// url accessibles à tous
+						.requestMatchers("/auth/inscription", "/auth/connexion").permitAll()
+
+						// url accessibles seulements en fonction du rôle
+						.requestMatchers("/diet/**").hasRole("DIETETICIEN").requestMatchers("/patient/**")
+						.hasRole("PATIENT").requestMatchers("/admin/**").hasRole("ADMIN")
+
+						// toutes les autres sont accessibles via authentification
+						.anyRequest().authenticated()
+
+				)
+
+				.authenticationProvider(authenticationProvider())
+
+				.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+
+		return http.build();
+	}
+
 	@Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
-        return config.getAuthenticationManager();
-    }
-	
-	 @Bean
-	    AuthenticationProvider authenticationProvider() {
+	public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+		return config.getAuthenticationManager();
+	}
 
-	        DaoAuthenticationProvider provider = new DaoAuthenticationProvider(userDetailsService);
+	@Bean
+	AuthenticationProvider authenticationProvider() {
 
-	        provider.setPasswordEncoder(passwordEncoder());
+		DaoAuthenticationProvider provider = new DaoAuthenticationProvider(userDetailsService);
 
-	        return provider;
-	    }
-	 
-	 @Bean
-	 CorsConfigurationSource corsConfigurationSource() {
+		provider.setPasswordEncoder(passwordEncoder());
 
-	     CorsConfiguration configuration = new CorsConfiguration();
+		return provider;
+	}
 
-	     configuration.setAllowedOrigins(List.of("http://localhost:5173"));
+	@Bean
+	CorsConfigurationSource corsConfigurationSource() {
 
-	     configuration.setAllowedMethods(List.of(
-	             "GET",
-	             "POST",
-	             "PUT",
-	             "DELETE",
-	             "OPTIONS"
-	     ));
+		CorsConfiguration configuration = new CorsConfiguration();
 
-	     configuration.setAllowedHeaders(List.of(
-	             "Authorization",
-	             "Content-Type"
-	     ));
+		configuration.setAllowedOrigins(List.of("http://localhost:5173"));
 
-	     // À false pour une API JWT
-	     configuration.setAllowCredentials(false);
+		configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
 
-	     UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+		configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
 
-	     source.registerCorsConfiguration("/**", configuration);
+		// À false pour une API JWT
+		configuration.setAllowCredentials(false);
 
-	     return source;
-	 }
+		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+
+		source.registerCorsConfiguration("/**", configuration);
+
+		return source;
+	}
 
 }

@@ -2,7 +2,6 @@ package com.gab.nutri_api.security;
 
 import java.io.IOException;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -16,53 +15,56 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 @Component
-public class JwtAuthenticationFilter extends OncePerRequestFilter{
+public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-	@Autowired
-	private JwtService jwtService;
+	private final JwtService jwtService;
+	private final CustomUserDetailsService userDetailsService;
 
-	@Autowired
-	private CustomUserDetailsService userDetailsService;
-	
+	public JwtAuthenticationFilter(JwtService jwtService, CustomUserDetailsService userDetailsService) {
+		super();
+		this.jwtService = jwtService;
+		this.userDetailsService = userDetailsService;
+	}
+
 	@Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
 			throws ServletException, IOException {
-	      
+
 		String authHeader = request.getHeader("Authorization");
 
-	        
-		if(authHeader == null || !authHeader.startsWith("Bearer ")) {
-			
-			filterChain.doFilter(request,response);
+		if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+
+			filterChain.doFilter(request, response);
 			return;
 		}
-		
+
 		String jwt = authHeader.substring(7);
-		
+
 		try {
 
-		    String username = jwtService.extractUsername(jwt);
-	
-		    if(username != null && SecurityContextHolder.getContext().getAuthentication() == null){
-		    	
-		    	UserDetails user = userDetailsService.loadUserByUsername(username);
-	
-		        if(jwtService.isTokenValid(jwt,user)){
-		        	
-		        	UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
-	
-		            SecurityContextHolder.getContext().setAuthentication(auth);
-		            
-		            auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-		         }
-		    }
+			String username = jwtService.extractUsername(jwt);
+
+			if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+
+				UserDetails user = userDetailsService.loadUserByUsername(username);
+
+				if (jwtService.isTokenValid(jwt, user)) {
+
+					UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(user, null,
+							user.getAuthorities());
+
+					SecurityContextHolder.getContext().setAuthentication(auth);
+
+					auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+				}
+			}
 		} catch (Exception e) {
-			
+
 			SecurityContextHolder.clearContext();
-			
+
 		}
-	    
-	    filterChain.doFilter(request,response);	
-	    
+
+		filterChain.doFilter(request, response);
+
 	}
 }

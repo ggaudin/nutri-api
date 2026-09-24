@@ -1,6 +1,5 @@
 package com.gab.nutri_api.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,13 +10,17 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.gab.nutri_api.dto.planalimentaire.PlanAlimentaireRequest;
 import com.gab.nutri_api.dto.planalimentaire.PlanAlimentaireResponse;
-import com.gab.nutri_api.service.PlanAlimentaireService;
+import com.gab.nutri_api.service.planalimentaire.PlanAlimentaireService;
 
 @RestController
 public class PlanAlimentaireController {
 
-	@Autowired
-	private PlanAlimentaireService planAlimentaireService;
+	private final PlanAlimentaireService planAlimentaireService;
+
+	public PlanAlimentaireController(PlanAlimentaireService planAlimentaireService) {
+		super();
+		this.planAlimentaireService = planAlimentaireService;
+	}
 
 	// Récupère un plan alimentaire à partir de son id
 	// si personne connectée autorisée
@@ -28,7 +31,8 @@ public class PlanAlimentaireController {
 
 	// Mise à jour plan alim si diet autorisé
 	@PutMapping("/palim/{id}")
-	public PlanAlimentaireResponse updatePlanAlimentaire(@PathVariable Integer id, @RequestBody PlanAlimentaireRequest planAlimentaireRequest, Authentication authentication) {
+	public PlanAlimentaireResponse updatePlanAlimentaire(@PathVariable Integer id,
+			@RequestBody PlanAlimentaireRequest planAlimentaireRequest, Authentication authentication) {
 		return planAlimentaireService.updatePlanAlimentaire(id, planAlimentaireRequest, authentication.getName());
 	}
 
