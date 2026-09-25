@@ -46,20 +46,9 @@ Les DTOs permettent de séparer les données exposées par l'API des entités pe
 
 Les règles d'accès aux données sont traitées au niveau métier afin de vérifier notamment qu'un diététicien ne peut accéder qu'aux patients qui lui sont associés.
 
-## Exemple de structure d'un plan alimentaire
+## Structure d'un plan alimentaire
 
-Un plan est composé de repas, eux-mêmes constitués de composants associés à des aliments :
-
-Plan alimentaire
-├── Petit-déjeuner
-│   ├── Pain
-│   └── Beurre
-├── Déjeuner
-│   ├── Riz
-│   └── Poulet
-└── Dîner
-    ├── Pâtes
-    └── Légumes
+Un plan est composé de repas, eux-mêmes constitués de composants associés à des aliments.
 
 ## Données nutritionnelles
 
