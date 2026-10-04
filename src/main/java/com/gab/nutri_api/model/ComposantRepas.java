@@ -28,6 +28,7 @@ public class ComposantRepas {
 	@JoinColumn(name = "aliment_id", nullable = false)
 	private Aliment aliment;
 	
+	@Column(nullable = false)
 	private BigDecimal quantite;
 	
 	@Column(length = 255)

@@ -2,8 +2,10 @@ package com.gab.nutri_api.service.planalimentaire;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
@@ -37,7 +39,8 @@ public class PlanAlimentaireNutritionService {
 
 		Map<Long, Map<Integer, BigDecimal>> mapMacronutriments = macronutrimentProjections.stream()
 				.collect(Collectors.groupingBy(projection -> projection.alimentId(),
-						Collectors.toMap(projection -> projection.code(), projection -> projection.valeur())));
+						Collectors.toMap(projection -> projection.code(),
+								projection -> Objects.requireNonNullElse(projection.valeur(), BigDecimal.ZERO))));
 
 		BigDecimal proteines = new BigDecimal("0");
 		BigDecimal glucides = new BigDecimal("0");
@@ -46,14 +49,28 @@ public class PlanAlimentaireNutritionService {
 
 		for (ComposantRepas composantRepas : composantsRepas) {
 			BigDecimal quantite = composantRepas.getQuantite();
+
+			if (quantite == null) {
+				quantite = BigDecimal.ZERO;
+			}
+
 			Long alimentId = composantRepas.getAliment().getId();
 
-			proteines = proteines.add(mapMacronutriments.get(alimentId).get(25000).multiply(quantite)
-					.divide(BigDecimal.valueOf(100), 1, RoundingMode.HALF_UP));
-			glucides = glucides.add(mapMacronutriments.get(alimentId).get(31000).multiply(quantite)
-					.divide(BigDecimal.valueOf(100), 1, RoundingMode.HALF_UP));
-			lipides = lipides.add(mapMacronutriments.get(alimentId).get(40000).multiply(quantite)
-					.divide(BigDecimal.valueOf(100), 1, RoundingMode.HALF_UP));
+			Map<Integer, BigDecimal> macronutriments = mapMacronutriments.getOrDefault(alimentId,
+					Collections.emptyMap());
+
+			BigDecimal proteinesValeur = macronutriments.getOrDefault(25000, BigDecimal.ZERO);
+
+			BigDecimal glucidesValeur = macronutriments.getOrDefault(31000, BigDecimal.ZERO);
+
+			BigDecimal lipidesValeur = macronutriments.getOrDefault(40000, BigDecimal.ZERO);
+
+			proteines = proteines
+					.add(proteinesValeur.multiply(quantite).divide(BigDecimal.valueOf(100), 1, RoundingMode.HALF_UP));
+			glucides = glucides
+					.add(glucidesValeur.multiply(quantite).divide(BigDecimal.valueOf(100), 1, RoundingMode.HALF_UP));
+			lipides = lipides
+					.add(lipidesValeur.multiply(quantite).divide(BigDecimal.valueOf(100), 1, RoundingMode.HALF_UP));
 		}
 
 		BigDecimal energieProt = proteines.multiply(BigDecimal.valueOf(4));

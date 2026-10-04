@@ -15,7 +15,7 @@ import com.gab.nutri_api.model.enums.GenrePatient;
 public class CalculBesoinsService {
 
 	private final AccessService planAlimentaireAccessService;
-	
+
 	public CalculBesoinsService(AccessService planAlimentaireAccessService) {
 		super();
 		this.planAlimentaireAccessService = planAlimentaireAccessService;
@@ -50,41 +50,48 @@ public class CalculBesoinsService {
 
 	private Integer calculBEJKj(Patient patient, int age) {
 
+		// Cas des enfants/ados ou données nécessaires absentes
+		if (age <= 17 || patient.getTaille() == null || patient.getPoids() == null || patient.getNap() == null || patient.getGenre() == null) {
+			return 0;
+		}
+
 		double taille = patient.getTaille().doubleValue();
 		double poids = patient.getPoids().doubleValue();
 		double nap = patient.getNap().doubleValue();
 
-		int bejKJ = 0;
-		// Cas des enfants/ados non pris en compte pour le moment, le BEJ sera à 0
+		int bejKJ;
 
-		if (age > 17) {
+		BigDecimal coef;
 
-			BigDecimal coef;
-
-			if (patient.getGenre() == GenrePatient.HOMME) {
-				coef = new BigDecimal("1.083");
-			} else {
-				coef = new BigDecimal("0.963");
-			}
-
-			// métabolisme de base avec formule Black et al.
-			double mb = coef.doubleValue() * Math.pow(poids, 0.48) * Math.pow(taille, 0.50) * Math.pow(age, -0.13);
-
-			bejKJ = (int) Math.round(mb * nap * 1000);
-
+		if (patient.getGenre() == GenrePatient.HOMME) {
+			coef = new BigDecimal("1.083");
+		} else {
+			coef = new BigDecimal("0.963");
 		}
 
+		// métabolisme de base avec formule Black et al.
+		double mb = coef.doubleValue() * Math.pow(poids, 0.48) * Math.pow(taille, 0.50) * Math.pow(age, -0.13);
+
+		bejKJ = (int) Math.round(mb * nap * 1000);
+
 		return bejKJ;
+
 	}
 
 	private Integer calculBEJkcal(Integer bejKJ) {
-		
+
 		return (int) Math.round(bejKJ / 4.184);
 	}
 
 	private int calculAge(Patient patient) {
 
-		return Period.between(patient.getDate(), LocalDate.now()).getYears();
+		int age = 0;
+
+		if (patient.getDate() != null) {
+			age = Period.between(patient.getDate(), LocalDate.now()).getYears();
+		}
+
+		return age;
 	}
 
 }
