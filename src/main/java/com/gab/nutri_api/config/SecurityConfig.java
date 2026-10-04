@@ -64,8 +64,10 @@ public class SecurityConfig {
 						.requestMatchers("/auth/inscription", "/auth/connexion").permitAll()
 
 						// url accessibles seulements en fonction du rôle
-						.requestMatchers("/diet/**").hasRole("DIETETICIEN").requestMatchers("/patient/**")
-						.hasRole("PATIENT").requestMatchers("/admin/**").hasRole("ADMIN")
+						.requestMatchers("/diet/**").hasRole("DIETETICIEN")
+						.requestMatchers("/patient/**").hasRole("PATIENT")
+						.requestMatchers("/aliments/**", "/palim/**").hasAnyRole("DIETETICIEN", "PATIENT")
+						.requestMatchers("/admin/**").hasRole("ADMIN")
 
 						// toutes les autres sont accessibles via authentification
 						.anyRequest().authenticated()

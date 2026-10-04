@@ -3,6 +3,7 @@ package com.gab.nutri_api.service.planalimentaire;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.gab.nutri_api.dto.PatientDieteticien;
 import com.gab.nutri_api.dto.planalimentaire.ApportsNutritionnels;
@@ -11,16 +12,19 @@ import com.gab.nutri_api.dto.planalimentaire.PlanAlimentaireRequest;
 import com.gab.nutri_api.dto.planalimentaire.PlanAlimentaireResponse;
 import com.gab.nutri_api.model.Dieteticien;
 import com.gab.nutri_api.model.PlanAlimentaire;
+import com.gab.nutri_api.model.Repas;
 import com.gab.nutri_api.model.enums.TypePlan;
 import com.gab.nutri_api.model.enums.VisibilitePlan;
 import com.gab.nutri_api.repository.PlanAlimentaireRepository;
-import com.gab.nutri_api.service.DieteticienService;
+import com.gab.nutri_api.repository.RepasRepository;
 import com.gab.nutri_api.service.AccessService;
+import com.gab.nutri_api.service.DieteticienService;
 
 @Service
 public class PlanAlimentaireService {
 
 	private final PlanAlimentaireRepository planAlimentaireRepository;
+	private final RepasRepository repasRepository;
 	private final DieteticienService dieteticienService;
 	private final PlanAlimentaireUpdateService planAlimentaireUpdateService;
 	private final PlanAlimentaireMapper planAlimentaireMapper;
@@ -29,6 +33,7 @@ public class PlanAlimentaireService {
 	private final AccessService planAlimentaireAccessService;
 
 	public PlanAlimentaireService(PlanAlimentaireRepository planAlimentaireRepository,
+			RepasRepository repasRepository,
 			DieteticienService dieteticienService, PlanAlimentaireUpdateService planAlimentaireUpdateService,
 			PlanAlimentaireMapper planAlimentaireMapper,
 			PlanAlimentaireConstructionService planAlimentaireConstructionService,
@@ -36,6 +41,7 @@ public class PlanAlimentaireService {
 			AccessService planAlimentaireAccessService) {
 		super();
 		this.planAlimentaireRepository = planAlimentaireRepository;
+		this.repasRepository = repasRepository;
 		this.dieteticienService = dieteticienService;
 		this.planAlimentaireUpdateService = planAlimentaireUpdateService;
 		this.planAlimentaireMapper = planAlimentaireMapper;
@@ -44,48 +50,56 @@ public class PlanAlimentaireService {
 		this.planAlimentaireAccessService = planAlimentaireAccessService;
 
 	}
-
+	
+	@Transactional (readOnly = true)
 	public PlanAlimentaireResponse getPlanAlimentaireById(Integer planAlimentaireId, String utilisateurEmail) {
 
-		PlanAlimentaire planAlimentaire = planAlimentaireRepository.findById(planAlimentaireId).orElseThrow(
+		PlanAlimentaire planAlimentaire = planAlimentaireRepository.findByIdWithPatientAndDieteticien(planAlimentaireId).orElseThrow(
 				() -> new RuntimeException("Plan Alimentaire non trouvé pour l'id : " + planAlimentaireId));
 
 		planAlimentaireAccessService.verificationsAccesPlanAlimentaire(planAlimentaire, utilisateurEmail);
+		
+		List<Repas> repas = repasRepository.findByPlanIdWithComposantsRepasAndAliment(planAlimentaireId);
 
-		ApportsNutritionnels apportsNutritionnels = planAlimentaireNutritionService
-				.calculApportsJournaliers(planAlimentaire);
+		ApportsNutritionnels apportsNutritionnels = planAlimentaireNutritionService.calculApportsJournaliers(planAlimentaire, repas);
 
 		PlanAlimentaireResponse planAlimentaireResponse = planAlimentaireMapper
-				.planAlimentaireToResponse(planAlimentaire, apportsNutritionnels);
+				.planAlimentaireToResponse(planAlimentaire, repas, apportsNutritionnels);
 
 		return planAlimentaireResponse;
 	}
 
+	@Transactional
 	public PlanAlimentaireResponse updatePlanAlimentaire(Integer planAlimentaireId,
 			PlanAlimentaireRequest planAlimentaireRequest, String utilisateurEmail) {
 
 		planAlimentaireAccessService.verificationRole(utilisateurEmail);
 
-		PlanAlimentaire planAlimentaire = planAlimentaireRepository.findById(planAlimentaireId).orElseThrow(
+		PlanAlimentaire planAlimentaire = planAlimentaireRepository.findByIdWithPatientAndDieteticien(planAlimentaireId).orElseThrow(
 				() -> new RuntimeException("Plan Alimentaire non trouvé pour l'id : " + planAlimentaireId));
 
 		planAlimentaireAccessService.verificationAccesPlanParDiet(utilisateurEmail, planAlimentaire);
+		
+		List<Repas> repas = repasRepository.findByPlanIdWithComposantsRepasAndAliment(planAlimentaireId);
 
-		planAlimentaire = planAlimentaireUpdateService.miseAJourPlanAlimentaire(planAlimentaire,
+		planAlimentaire = planAlimentaireUpdateService.miseAJourPlanAlimentaire(planAlimentaire, repas,
 				planAlimentaireRequest);
 
 		planAlimentaire = planAlimentaireRepository.save(planAlimentaire);
+		
+		repas = repasRepository.findByPlanIdWithComposantsRepasAndAliment(planAlimentaireId);
 
 		ApportsNutritionnels apportsNutritionnels = planAlimentaireNutritionService
-				.calculApportsJournaliers(planAlimentaire);
+				.calculApportsJournaliers(planAlimentaire, repas);
 
 		PlanAlimentaireResponse planAlimentaireResponse = planAlimentaireMapper
-				.planAlimentaireToResponse(planAlimentaire, apportsNutritionnels);
+				.planAlimentaireToResponse(planAlimentaire, repas, apportsNutritionnels);
 
 		return planAlimentaireResponse;
 
 	}
 
+	@Transactional
 	public void deletePlanAlimentaire(Integer planAlimentaireId, String utilisateurEmail) {
 
 		planAlimentaireAccessService.verificationRole(utilisateurEmail);
@@ -99,6 +113,7 @@ public class PlanAlimentaireService {
 
 	}
 
+	@Transactional
 	public PlanAlimentaireResponse creerPlanAlimentaire(Integer patientId, String dietEmail,
 			PlanAlimentaireRequest planAlimentaireRequest) {
 
@@ -115,14 +130,15 @@ public class PlanAlimentaireService {
 		planAlimentaire = planAlimentaireRepository.save(planAlimentaire);
 
 		ApportsNutritionnels apportsNutritionnels = planAlimentaireNutritionService
-				.calculApportsJournaliers(planAlimentaire);
+				.calculApportsJournaliers(planAlimentaire, planAlimentaire.getListeRepas());
 
 		PlanAlimentaireResponse planAlimentaireResponse = planAlimentaireMapper
-				.planAlimentaireToResponse(planAlimentaire, apportsNutritionnels);
+				.planAlimentaireToResponse(planAlimentaire, planAlimentaire.getListeRepas(), apportsNutritionnels);
 
 		return planAlimentaireResponse;
 	}
 
+	@Transactional
 	public PlanAlimentaireResponse creerPlanAlimentaireTemplate(String dietEmail,
 			PlanAlimentaireRequest planAlimentaireRequest) {
 
@@ -138,10 +154,10 @@ public class PlanAlimentaireService {
 		planAlimentaire = planAlimentaireRepository.save(planAlimentaire);
 
 		ApportsNutritionnels apportsNutritionnels = planAlimentaireNutritionService
-				.calculApportsJournaliers(planAlimentaire);
+				.calculApportsJournaliers(planAlimentaire, planAlimentaire.getListeRepas());
 
 		PlanAlimentaireResponse planAlimentaireResponse = planAlimentaireMapper
-				.planAlimentaireToResponse(planAlimentaire, apportsNutritionnels);
+				.planAlimentaireToResponse(planAlimentaire, planAlimentaire.getListeRepas(), apportsNutritionnels);
 
 		return planAlimentaireResponse;
 	}

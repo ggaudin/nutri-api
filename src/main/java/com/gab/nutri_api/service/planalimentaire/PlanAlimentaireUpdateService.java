@@ -1,5 +1,6 @@
 package com.gab.nutri_api.service.planalimentaire;
 
+import java.util.List;
 import java.util.Objects;
 
 import org.springframework.stereotype.Service;
@@ -25,24 +26,24 @@ public class PlanAlimentaireUpdateService {
 		this.alimentRepository = alimentRepository;
 	}
 
-	public PlanAlimentaire miseAJourPlanAlimentaire(PlanAlimentaire planAlimentaire,
+	public PlanAlimentaire miseAJourPlanAlimentaire(PlanAlimentaire planAlimentaire, List<Repas> listeRepas,
 			PlanAlimentaireRequest planAlimentaireRequest) {
 
 		planAlimentaire.setNom(planAlimentaireRequest.getNom());
 		planAlimentaire.setNotes(planAlimentaireRequest.getNotes());
 
-		mettreAJour(planAlimentaire, planAlimentaireRequest);
+		mettreAJour(planAlimentaire, listeRepas, planAlimentaireRequest);
 
 		return planAlimentaire;
 	}
 
-	private void mettreAJour(PlanAlimentaire planAlimentaire, PlanAlimentaireRequest planAlimentaireRequest) {
+	private void mettreAJour(PlanAlimentaire planAlimentaire, List<Repas> listeRepas, PlanAlimentaireRequest planAlimentaireRequest) {
 
-		mettreAJourLesRepas(planAlimentaire, planAlimentaireRequest);
+		mettreAJourLesRepas(planAlimentaire, listeRepas, planAlimentaireRequest);
 
 	}
 
-	private void mettreAJourLesRepas(PlanAlimentaire planAlimentaire, PlanAlimentaireRequest planAlimentaireRequest) {
+	private void mettreAJourLesRepas(PlanAlimentaire planAlimentaire, List<Repas> listeRepas, PlanAlimentaireRequest planAlimentaireRequest) {
 
 		
 		// Mise à jour et création
@@ -56,7 +57,7 @@ public class PlanAlimentaireUpdateService {
 			}
 
 			// Recherche du repas existant
-			Repas repas = planAlimentaire.getListeRepas().stream()
+			Repas repas = listeRepas.stream()
 					.filter(rep -> Objects.equals(rep.getId(), repasRequest.getId())).findFirst()
 					.orElseThrow(() -> new RuntimeException(
 							"Repas non trouvé pour l'id : " + repasRequest.getId()));
@@ -68,7 +69,7 @@ public class PlanAlimentaireUpdateService {
 		});
 
 		// Suppression
-		planAlimentaire.getListeRepas().stream()
+		listeRepas.stream()
 				.filter(repas -> planAlimentaireRequest.getRepas().stream()
 						.noneMatch(repasRequest -> Objects.equals(repas.getId(), repasRequest.getId())))
 				.toList().forEach(repas -> planAlimentaire.supprimerRepas(repas));

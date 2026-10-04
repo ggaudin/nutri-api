@@ -17,7 +17,7 @@ import com.gab.nutri_api.model.Repas;
 @Component
 public class PlanAlimentaireMapper {
 
-	public PlanAlimentaireResponse planAlimentaireToResponse(PlanAlimentaire planAlimentaire,
+	public PlanAlimentaireResponse planAlimentaireToResponse(PlanAlimentaire planAlimentaire, List<Repas> listeRepas,
 			ApportsNutritionnels apportsNutritionnels) {
 
 		PlanAlimentaireResponse planAlimentaireResponse = new PlanAlimentaireResponse();
@@ -33,25 +33,25 @@ public class PlanAlimentaireMapper {
 			planAlimentaireResponse.setDietId(planAlimentaire.getDieteticien().getId());
 		}
 
-		List<RepasResponse> listeRepasResponse = listeRepasToResponse(planAlimentaire);
+		List<RepasResponse> listeRepasResponse = listeRepasToResponse(listeRepas);
 		planAlimentaireResponse.setRepas(listeRepasResponse);
 
 		if (apportsNutritionnels != null) {
-			planAlimentaireResponse.setProteinesTot(apportsNutritionnels.getProteinesTot());
-			planAlimentaireResponse.setGlucidesTot(apportsNutritionnels.getGlucidesTot());
-			planAlimentaireResponse.setLipidesTot(apportsNutritionnels.getLipidesTot());
-			planAlimentaireResponse.setEnergieTot(apportsNutritionnels.getEnergieTot());
+			planAlimentaireResponse.setProteinesTot(apportsNutritionnels.proteinesTot());
+			planAlimentaireResponse.setGlucidesTot(apportsNutritionnels.glucidesTot());
+			planAlimentaireResponse.setLipidesTot(apportsNutritionnels.lipidesTot());
+			planAlimentaireResponse.setEnergieTot(apportsNutritionnels.energieTot());
 		}
 
 		return planAlimentaireResponse;
 
 	}
 
-	private List<RepasResponse> listeRepasToResponse(PlanAlimentaire planAlimentaire) {
+	private List<RepasResponse> listeRepasToResponse(List<Repas> listeRepas) {
 
 		List<RepasResponse> listeRepasResponse = new ArrayList<RepasResponse>();
 
-		for (Repas repas : planAlimentaire.getListeRepas()) {
+		for (Repas repas : listeRepas) {
 			RepasResponse repasResponse = new RepasResponse();
 
 			repasResponse.setNom(repas.getNom());

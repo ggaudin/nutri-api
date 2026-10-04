@@ -5,6 +5,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.gab.nutri_api.dto.auth.AuthResponse;
 import com.gab.nutri_api.dto.auth.LoginRequest;
@@ -44,7 +45,12 @@ public class AuthService {
 	}
 
 	// Inscription utilisateur
+	@Transactional
 	public void inscriptionUtilisateur(RegisterRequest registerRequest) {
+
+		if (registerRequest.getRole() == RoleUtilisateur.ADMIN) {
+			throw new IllegalArgumentException("La création d'un compte administrateur n'est pas autorisée.");
+		}
 
 		Utilisateur utilisateur = new Utilisateur();
 

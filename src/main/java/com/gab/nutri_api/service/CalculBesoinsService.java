@@ -54,8 +54,8 @@ public class CalculBesoinsService {
 		double poids = patient.getPoids().doubleValue();
 		double nap = patient.getNap().doubleValue();
 
-		Integer bejKJ = null;
-		// Cas des enfants/ados non pris en compte pour le moment, le BEJ sera null
+		int bejKJ = 0;
+		// Cas des enfants/ados non pris en compte pour le moment, le BEJ sera à 0
 
 		if (age > 17) {
 
@@ -78,6 +78,7 @@ public class CalculBesoinsService {
 	}
 
 	private Integer calculBEJkcal(Integer bejKJ) {
+		
 		return (int) Math.round(bejKJ / 4.184);
 	}
 

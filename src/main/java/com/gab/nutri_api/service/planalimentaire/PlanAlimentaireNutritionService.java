@@ -3,33 +3,41 @@ package com.gab.nutri_api.service.planalimentaire;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
-import com.gab.nutri_api.dto.AlimentResponse;
 import com.gab.nutri_api.dto.planalimentaire.ApportsNutritionnels;
+import com.gab.nutri_api.dto.planalimentaire.MacronutrimentProjection;
 import com.gab.nutri_api.model.ComposantRepas;
 import com.gab.nutri_api.model.PlanAlimentaire;
-import com.gab.nutri_api.repository.ComposantRepasRepository;
-import com.gab.nutri_api.service.AlimentService;
+import com.gab.nutri_api.model.Repas;
+import com.gab.nutri_api.repository.CompositionAlimentRepository;
 
 @Service
 public class PlanAlimentaireNutritionService {
 
-	private final AlimentService alimentService;
-	private final ComposantRepasRepository composantRepasRepository;
+	private final CompositionAlimentRepository compositionAlimentRepository;
 
-	public PlanAlimentaireNutritionService(AlimentService alimentService,
-			ComposantRepasRepository composantRepasRepository) {
+	public PlanAlimentaireNutritionService(CompositionAlimentRepository compositionAlimentRepository) {
 		super();
-		this.alimentService = alimentService;
-		this.composantRepasRepository = composantRepasRepository;
+		this.compositionAlimentRepository = compositionAlimentRepository;
 	}
 
-	public ApportsNutritionnels calculApportsJournaliers(PlanAlimentaire planAlimentaire) {
+	public ApportsNutritionnels calculApportsJournaliers(PlanAlimentaire planAlimentaire, List<Repas> repas) {
 
-		List<ComposantRepas> composantsRepas = composantRepasRepository
-				.findComposantsWithAlimentByPlanId(planAlimentaire.getId());
+		List<ComposantRepas> composantsRepas = repas.stream().flatMap(r -> r.getComposantsRepas().stream()).toList();
+
+		List<Long> alimentIds = composantsRepas.stream().map(composant -> composant.getAliment().getId()).distinct()
+				.toList();
+
+		List<MacronutrimentProjection> macronutrimentProjections = compositionAlimentRepository
+				.findMacronutrimentsByAlimentIds(alimentIds);
+
+		Map<Long, Map<Integer, BigDecimal>> mapMacronutriments = macronutrimentProjections.stream()
+				.collect(Collectors.groupingBy(projection -> projection.alimentId(),
+						Collectors.toMap(projection -> projection.code(), projection -> projection.valeur())));
 
 		BigDecimal proteines = new BigDecimal("0");
 		BigDecimal glucides = new BigDecimal("0");
@@ -38,14 +46,14 @@ public class PlanAlimentaireNutritionService {
 
 		for (ComposantRepas composantRepas : composantsRepas) {
 			BigDecimal quantite = composantRepas.getQuantite();
-			AlimentResponse alimentResponse = alimentService.alimentToResponse(composantRepas.getAliment());
+			Long alimentId = composantRepas.getAliment().getId();
 
-			proteines = proteines.add(alimentResponse.getProteines()
-					.multiply(quantite.divide(BigDecimal.valueOf(100), 1, RoundingMode.HALF_UP)));
-			glucides = glucides.add(alimentResponse.getGlucides()
-					.multiply(quantite.divide(BigDecimal.valueOf(100), 1, RoundingMode.HALF_UP)));
-			lipides = lipides.add(alimentResponse.getLipides()
-					.multiply(quantite.divide(BigDecimal.valueOf(100), 1, RoundingMode.HALF_UP)));
+			proteines = proteines.add(mapMacronutriments.get(alimentId).get(25000).multiply(quantite)
+					.divide(BigDecimal.valueOf(100), 1, RoundingMode.HALF_UP));
+			glucides = glucides.add(mapMacronutriments.get(alimentId).get(31000).multiply(quantite)
+					.divide(BigDecimal.valueOf(100), 1, RoundingMode.HALF_UP));
+			lipides = lipides.add(mapMacronutriments.get(alimentId).get(40000).multiply(quantite)
+					.divide(BigDecimal.valueOf(100), 1, RoundingMode.HALF_UP));
 		}
 
 		BigDecimal energieProt = proteines.multiply(BigDecimal.valueOf(4));
@@ -55,12 +63,7 @@ public class PlanAlimentaireNutritionService {
 		// energie en kcal
 		energie = energie.add(energieProt).add(energieGlucides).add(energieLipides);
 
-		ApportsNutritionnels apportsNutritionnels = new ApportsNutritionnels();
-
-		apportsNutritionnels.setProteinesTot(proteines);
-		apportsNutritionnels.setGlucidesTot(glucides);
-		apportsNutritionnels.setLipidesTot(lipides);
-		apportsNutritionnels.setEnergieTot(energie);
+		ApportsNutritionnels apportsNutritionnels = new ApportsNutritionnels(proteines, glucides, lipides, energie);
 
 		return apportsNutritionnels;
 
