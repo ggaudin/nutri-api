@@ -10,6 +10,7 @@ import com.gab.nutri_api.model.Patient;
 import com.gab.nutri_api.model.PlanAlimentaire;
 import com.gab.nutri_api.model.Utilisateur;
 import com.gab.nutri_api.model.enums.RoleUtilisateur;
+import com.gab.nutri_api.model.enums.VisibilitePlan;
 import com.gab.nutri_api.repository.DieteticienRepository;
 import com.gab.nutri_api.repository.PatientRepository;
 import com.gab.nutri_api.repository.UtilisateurRepository;
@@ -82,6 +83,18 @@ public class AccessService {
 			throw new AccessDeniedException("Vous ne pouvez pas modifier ou supprimer ce plan alimentaire");
 		}
 
+	}
+
+	// Vérifie que le diet connecté peut modifier ou supprimer le plan :
+	// mêmes règles que l'accès en lecture, et les templates globaux (gérés par les
+	// admins) sont en lecture seule pour les diets
+	public void verificationModificationPlanParDiet(String utilisateurEmail, PlanAlimentaire planAlimentaire) {
+
+		verificationAccesPlanParDiet(utilisateurEmail, planAlimentaire);
+
+		if (planAlimentaire.getVisibilite() == VisibilitePlan.GLOBAL) {
+			throw new AccessDeniedException("Vous ne pouvez pas modifier ou supprimer un plan alimentaire global");
+		}
 	}
 
 	public void verificationAccesPlanParDiet(String utilisateurEmail, PlanAlimentaire planAlimentaire) {

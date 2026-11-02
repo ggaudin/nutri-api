@@ -78,7 +78,7 @@ public class PlanAlimentaireService {
 		PlanAlimentaire planAlimentaire = planAlimentaireRepository.findByIdWithPatientAndDieteticien(planAlimentaireId).orElseThrow(
 				() -> new RuntimeException("Plan Alimentaire non trouvé pour l'id : " + planAlimentaireId));
 
-		planAlimentaireAccessService.verificationAccesPlanParDiet(utilisateurEmail, planAlimentaire);
+		planAlimentaireAccessService.verificationModificationPlanParDiet(utilisateurEmail, planAlimentaire);
 		
 		List<Repas> repas = repasRepository.findByPlanIdWithComposantsRepasAndAliment(planAlimentaireId);
 
@@ -107,7 +107,7 @@ public class PlanAlimentaireService {
 		PlanAlimentaire planAlimentaire = planAlimentaireRepository.findById(planAlimentaireId).orElseThrow(
 				() -> new RuntimeException("Plan Alimentaire non trouvé pour l'id : " + planAlimentaireId));
 
-		planAlimentaireAccessService.verificationAccesPlanParDiet(utilisateurEmail, planAlimentaire);
+		planAlimentaireAccessService.verificationModificationPlanParDiet(utilisateurEmail, planAlimentaire);
 
 		planAlimentaireRepository.delete(planAlimentaire);
 
