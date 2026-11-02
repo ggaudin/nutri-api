@@ -111,6 +111,14 @@ public class AccessService {
 				&& !planAlimentaire.getDieteticien().getId().equals(diet.getId())) {
 			throw new AccessDeniedException("Vous n'avez pas accès à ce plan alimentaire");
 		}
+		// Si le plan appartient à un patient que le diet ne suit pas (ou plus) -> Accès refusé
+		if (planAlimentaire.getPatient() != null) {
+			Dieteticien dietDuPatient = planAlimentaire.getPatient().getDieteticien();
+
+			if (dietDuPatient == null || !dietDuPatient.getId().equals(diet.getId())) {
+				throw new AccessDeniedException("Vous n'avez pas accès à ce plan alimentaire");
+			}
+		}
 	}
 
 }

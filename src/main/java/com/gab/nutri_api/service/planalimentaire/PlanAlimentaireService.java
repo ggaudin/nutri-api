@@ -164,9 +164,12 @@ public class PlanAlimentaireService {
 
 	public List<PlanAlimentaireListResponse> getPlansAlimentaires(Integer patientId, String dietEmail) {
 
-		planAlimentaireAccessService.recuperationPatientDieteticienEtVerificationAcces(patientId, dietEmail);
+		PatientDieteticien patientDieteticien = planAlimentaireAccessService
+				.recuperationPatientDieteticienEtVerificationAcces(patientId, dietEmail);
 
-		List<PlanAlimentaire> listePlanAlimentaire = planAlimentaireRepository.findByPatientId(patientId);
+		// Seuls les plans créés par le diet connecté (pas ceux d'un diet précédent)
+		List<PlanAlimentaire> listePlanAlimentaire = planAlimentaireRepository
+				.findByPatientIdAndDieteticienId(patientId, patientDieteticien.dieteticien().getId());
 
 		return planAlimentaireMapper.toListePlanAlimentaireListResponse(listePlanAlimentaire);
 	}
