@@ -103,6 +103,7 @@ La base de données (schéma et import Ciqual) n'est pas fournie dans ce dépôt
 
 ```bash
 ./mvnw spring-boot:run      # Windows : .\mvnw.cmd spring-boot:run
+```
 
 ## Statut et évolutions prévues
 
