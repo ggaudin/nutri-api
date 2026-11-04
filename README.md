@@ -91,6 +91,7 @@ Tests unitaires de la couche service (JUnit 5 + Mockito, sans base de données) 
 ```bash
 ./mvnw test
 ```
+
 ## Exécution en local
 
 La base de données (schéma et import Ciqual) n'est pas fournie dans ce dépôt. Les informations sensibles ne sont pas versionnées : elles sont lues depuis des variables d'environnement.
