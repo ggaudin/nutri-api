@@ -61,7 +61,7 @@ Le rôle est contrôlé par Spring Security selon l'URL. Les règles plus fines 
 
 - un diététicien n'accède qu'aux patients qui lui sont rattachés ;
 - un diététicien n'accède à un plan que s'il en est l'auteur et qu'il suit toujours le patient concerné ;
-- un patient n'accède qu'à ses propres plans ;
+- un patient n'accède qu'à ses propres plans en lecture seule ;
 - les modèles globaux (`GLOBAL`) sont en lecture seule pour les diététiciens ;
 - un administrateur n'a pas accès aux données de santé des patients.
 
