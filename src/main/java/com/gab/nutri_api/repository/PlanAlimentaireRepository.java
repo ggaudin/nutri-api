@@ -14,7 +14,7 @@ import com.gab.nutri_api.model.enums.VisibilitePlan;
 @Repository
 public interface PlanAlimentaireRepository extends CrudRepository<PlanAlimentaire, Integer>{
 	
-	List<PlanAlimentaire> findByPatientId(Integer patientId);
+	List<PlanAlimentaire> findByPatientIdAndDieteticienId(Integer patientId, Integer dieteticienId);
 	
 	List<PlanAlimentaire> findByDieteticienIdAndTypeOrVisibilite(Integer dieteticienId, TypePlan typePlan, VisibilitePlan visibilitePlan);
 

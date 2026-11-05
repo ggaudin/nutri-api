@@ -78,7 +78,7 @@ public class PlanAlimentaireService {
 		PlanAlimentaire planAlimentaire = planAlimentaireRepository.findByIdWithPatientAndDieteticien(planAlimentaireId).orElseThrow(
 				() -> new RuntimeException("Plan Alimentaire non trouvé pour l'id : " + planAlimentaireId));
 
-		planAlimentaireAccessService.verificationAccesPlanParDiet(utilisateurEmail, planAlimentaire);
+		planAlimentaireAccessService.verificationModificationPlanParDiet(utilisateurEmail, planAlimentaire);
 		
 		List<Repas> repas = repasRepository.findByPlanIdWithComposantsRepasAndAliment(planAlimentaireId);
 
@@ -107,7 +107,7 @@ public class PlanAlimentaireService {
 		PlanAlimentaire planAlimentaire = planAlimentaireRepository.findById(planAlimentaireId).orElseThrow(
 				() -> new RuntimeException("Plan Alimentaire non trouvé pour l'id : " + planAlimentaireId));
 
-		planAlimentaireAccessService.verificationAccesPlanParDiet(utilisateurEmail, planAlimentaire);
+		planAlimentaireAccessService.verificationModificationPlanParDiet(utilisateurEmail, planAlimentaire);
 
 		planAlimentaireRepository.delete(planAlimentaire);
 
@@ -164,9 +164,12 @@ public class PlanAlimentaireService {
 
 	public List<PlanAlimentaireListResponse> getPlansAlimentaires(Integer patientId, String dietEmail) {
 
-		planAlimentaireAccessService.recuperationPatientDieteticienEtVerificationAcces(patientId, dietEmail);
+		PatientDieteticien patientDieteticien = planAlimentaireAccessService
+				.recuperationPatientDieteticienEtVerificationAcces(patientId, dietEmail);
 
-		List<PlanAlimentaire> listePlanAlimentaire = planAlimentaireRepository.findByPatientId(patientId);
+		// Seuls les plans créés par le diet connecté (pas ceux d'un diet précédent)
+		List<PlanAlimentaire> listePlanAlimentaire = planAlimentaireRepository
+				.findByPatientIdAndDieteticienId(patientId, patientDieteticien.dieteticien().getId());
 
 		return planAlimentaireMapper.toListePlanAlimentaireListResponse(listePlanAlimentaire);
 	}

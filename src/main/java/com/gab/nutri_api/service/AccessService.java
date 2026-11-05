@@ -10,6 +10,7 @@ import com.gab.nutri_api.model.Patient;
 import com.gab.nutri_api.model.PlanAlimentaire;
 import com.gab.nutri_api.model.Utilisateur;
 import com.gab.nutri_api.model.enums.RoleUtilisateur;
+import com.gab.nutri_api.model.enums.VisibilitePlan;
 import com.gab.nutri_api.repository.DieteticienRepository;
 import com.gab.nutri_api.repository.PatientRepository;
 import com.gab.nutri_api.repository.UtilisateurRepository;
@@ -84,6 +85,18 @@ public class AccessService {
 
 	}
 
+	// Vérifie que le diet connecté peut modifier ou supprimer le plan :
+	// mêmes règles que l'accès en lecture, et les templates globaux (gérés par les
+	// admins) sont en lecture seule pour les diets
+	public void verificationModificationPlanParDiet(String utilisateurEmail, PlanAlimentaire planAlimentaire) {
+
+		verificationAccesPlanParDiet(utilisateurEmail, planAlimentaire);
+
+		if (planAlimentaire.getVisibilite() == VisibilitePlan.GLOBAL) {
+			throw new AccessDeniedException("Vous ne pouvez pas modifier ou supprimer un plan alimentaire global");
+		}
+	}
+
 	public void verificationAccesPlanParDiet(String utilisateurEmail, PlanAlimentaire planAlimentaire) {
 
 		Dieteticien diet = dieteticienRepository.findByUtilisateurEmail(utilisateurEmail).orElseThrow(
@@ -97,6 +110,14 @@ public class AccessService {
 		if (planAlimentaire.getDieteticien() != null
 				&& !planAlimentaire.getDieteticien().getId().equals(diet.getId())) {
 			throw new AccessDeniedException("Vous n'avez pas accès à ce plan alimentaire");
+		}
+		// Si le plan appartient à un patient que le diet ne suit pas (ou plus) -> Accès refusé
+		if (planAlimentaire.getPatient() != null) {
+			Dieteticien dietDuPatient = planAlimentaire.getPatient().getDieteticien();
+
+			if (dietDuPatient == null || !dietDuPatient.getId().equals(diet.getId())) {
+				throw new AccessDeniedException("Vous n'avez pas accès à ce plan alimentaire");
+			}
 		}
 	}
 
